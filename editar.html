@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editar estudiante</title>
+</head>
+<body>
+
+<h1>Editar estudiante</h1>
+
+<form action="/actualizar/{{ estudiante[0] }}" method="post">
+
+    Nombre:
+    <input type="text" name="nombre" value="{{ estudiante[1] }}"><br>
+
+    Curso:
+    <input type="text" name="curso" value="{{ estudiante[2] }}"><br>
+
+    Pago:
+    <select name="pago">
+        <option value="Pagado" {% if estudiante[3] == "Pagado" %}selected{% endif %}>Pagado</option>
+        <option value="Pendiente" {% if estudiante[3] == "Pendiente" %}selected{% endif %}>Pendiente</option>
+    </select><br>
+
+    <button type="submit">Guardar cambios</button>
+
+</form>
+
+<br>
+
+<a href="/">Volver</a>
+
+</body>
+</html>
