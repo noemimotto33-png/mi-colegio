@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Filtro</title>
+</head>
+<body>
+
+<h1>Estudiantes: {{ estado }}</h1>
+
+<a href="/">⬅ Volver</a>
+
+<ul>
+{% for estudiante in estudiantes %}
+    <li>
+        {{ estudiante[1] }} - {{ estudiante[2] }} - {{ estudiante[3] }}
+    </li>
+{% endfor %}
+</ul>
+
+</body>
+</html>
