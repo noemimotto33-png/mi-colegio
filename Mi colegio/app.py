@@ -1,19 +1,54 @@
 from flask import Flask, render_template, request, redirect, session
 import sqlite3
 import os
+import traceback
 
 app = Flask(__name__)
-
-# 🔐 clave secreta para sesiones
 app.secret_key = "colegio123"
+
+# 🔥 RUTA CORRECTA BASE DE DATOS (IMPORTANTE PARA RENDER)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(BASE_DIR, "database.db")
+
+
+# 🟢 CREAR BASE DE DATOS AUTOMÁTICAMENTE
+def init_db():
+    conexion = sqlite3.connect(db_path)
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS estudiantes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            curso TEXT,
+            pago TEXT
+        )
+    """)
+
+    conexion.commit()
+    conexion.close()
+
+init_db()
+
+
+# 🔴 MOSTRAR ERROR REAL (MUY IMPORTANTE)
+@app.errorhandler(500)
+def error_500(e):
+    return f"<pre>{traceback.format_exc()}</pre>", 500
+
+
+# 🧪 RUTA DE PRUEBA
+@app.route("/test")
+def test():
+    return "FUNCIONA CORRECTAMENTE"
 
 
 # 🔑 LOGIN
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        usuario = request.form["usuario"]
-        password = request.form["password"]
+        usuario = request.form.get("usuario")
+        password = request.form.get("password")
 
         if usuario == "admin" and password == "1234":
             session["admin"] = True
@@ -37,7 +72,7 @@ def index():
     if "admin" not in session:
         return redirect("/login")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("SELECT * FROM estudiantes")
@@ -58,11 +93,11 @@ def index():
 # ➕ AÑADIR
 @app.route("/add", methods=["POST"])
 def add():
-    nombre = request.form["nombre"]
-    curso = request.form["curso"]
-    pago = request.form["pago"]
+    nombre = request.form.get("nombre")
+    curso = request.form.get("curso")
+    pago = request.form.get("pago")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("""
@@ -82,7 +117,7 @@ def filtro(estado):
     if "admin" not in session:
         return redirect("/login")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("SELECT * FROM estudiantes WHERE pago = ?", (estado,))
@@ -98,11 +133,10 @@ def eliminar(id):
     if "admin" not in session:
         return redirect("/login")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("DELETE FROM estudiantes WHERE id = ?", (id,))
-
     conexion.commit()
     conexion.close()
 
@@ -115,12 +149,11 @@ def editar(id):
     if "admin" not in session:
         return redirect("/login")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("SELECT * FROM estudiantes WHERE id = ?", (id,))
     estudiante = cursor.fetchone()
-
     conexion.close()
 
     return render_template("editar.html", estudiante=estudiante)
@@ -132,11 +165,11 @@ def actualizar(id):
     if "admin" not in session:
         return redirect("/login")
 
-    nombre = request.form["nombre"]
-    curso = request.form["curso"]
-    pago = request.form["pago"]
+    nombre = request.form.get("nombre")
+    curso = request.form.get("curso")
+    pago = request.form.get("pago")
 
-    conexion = sqlite3.connect("database.db")
+    conexion = sqlite3.connect(db_path)
     cursor = conexion.cursor()
 
     cursor.execute("""
@@ -151,7 +184,7 @@ def actualizar(id):
     return redirect("/")
 
 
-# 🚀 IMPORTANTE: PARA INTERNET (RENDER)
+# 🚀 PRODUCCIÓN
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
